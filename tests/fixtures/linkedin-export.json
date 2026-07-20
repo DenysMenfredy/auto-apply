@@ -1,0 +1,25 @@
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "headline": "Senior Backend Engineer | Node.js | AWS",
+  "summary": "Backend engineer with 7 years of experience building APIs with Node.js, TypeScript and PostgreSQL. Recently shipped LLM-powered features.",
+  "skills": ["Node.js", "nodejs", { "name": "TypeScript" }, "AWS", "PostgreSQL", "Leadership"],
+  "certifications": [{ "name": "AWS Certified Solutions Architect" }],
+  "languages": ["English", "Portuguese"],
+  "positions": [
+    {
+      "title": "Senior Backend Engineer",
+      "companyName": "Acme",
+      "description": "Built Node.js microservices on AWS with PostgreSQL and Redis.",
+      "startDate": "2021-03",
+      "endDate": "Present"
+    },
+    {
+      "title": "Backend Engineer",
+      "companyName": "Globex",
+      "description": "Developed REST APIs with Python and Django.",
+      "startDate": "2018-01",
+      "endDate": "2021-02"
+    }
+  ]
+}

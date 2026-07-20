@@ -1,0 +1,15 @@
+{
+  "candidate": {
+    "preferredLocations": ["Remote", "LATAM"]
+  },
+  "search": {
+    "maxQueries": 25,
+    "resultsPerQuery": 10,
+    "minScore": 0
+  },
+  "output": {
+    "dir": "outputs",
+    "formats": ["json", "csv", "markdown"]
+  },
+  "logLevel": "info"
+}

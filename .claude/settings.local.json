@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/denys7/.nvm/versions/node/**)",
+      "Read(//home/denys7/.local/share/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(dd if=/tmp/claude-1001/-home-denys7-projects-auto-apply-roles/648b90cf-bf85-4840-8861-54c99c553e1a/scratchpad/resume.pdf bs=1 skip=902 count=10)",
+      "Bash(python3 -c \"import reportlab; print\\('reportlab available'\\)\")",
+      "Bash(python3 -c \"import fpdf; print\\('fpdf available'\\)\")"
+    ]
+  }
+}

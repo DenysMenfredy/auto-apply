@@ -1,0 +1,44 @@
+{
+  "name": "autoapply",
+  "version": "0.1.0",
+  "description": "CLI that discovers Software Engineering and AI Engineering jobs, builds a candidate profile, ranks compatibility, and exports results.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "autoapply": "./dist/autoapply.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx cmd/autoapply.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "pdf-parse": "^1.1.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "undici": "^7.3.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.10.5",
+    "@types/pdf-parse": "^1.1.4",
+    "@vitest/coverage-v8": "^3.0.4",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  }
+}
