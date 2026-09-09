@@ -40,6 +40,25 @@ describe("SearchQueryGenerator", () => {
     expect(queries[0]?.role).toBe("Backend Engineer");
   });
 
+  it("grouped mode emits one OR-group query per board requiring every location", () => {
+    const generator = new SearchQueryGenerator({
+      roles: ["Software Engineer", "AI Engineer"],
+      locations: ["LATAM", "Remote"],
+      boards: ["lever", "greenhouse", "ashby"],
+      maxQueries: 25,
+      grouped: true,
+    });
+
+    const queries = generator.generate(makeCandidate({ preferredLocations: [] }));
+    expect(queries).toHaveLength(3);
+    expect(queries.map((q) => q.query)).toEqual([
+      'site:jobs.lever.co ("Software Engineer" OR "AI Engineer") "LATAM" "Remote"',
+      'site:boards.greenhouse.io ("Software Engineer" OR "AI Engineer") "LATAM" "Remote"',
+      'site:jobs.ashbyhq.com ("Software Engineer" OR "AI Engineer") "LATAM" "Remote"',
+    ]);
+    expect(queries[0]?.board).toBe("lever");
+  });
+
   it("uses the candidate's preferred locations when present", () => {
     const generator = new SearchQueryGenerator({
       roles: ["Backend Engineer"],

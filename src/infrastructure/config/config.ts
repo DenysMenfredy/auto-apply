@@ -13,7 +13,7 @@ const configSchema = z.object({
     .default({}),
   search: z
     .object({
-      provider: z.enum(["google", "google-cse", "duckduckgo"]).default("google"),
+      provider: z.enum(["google", "google-cse", "duckduckgo", "browser"]).default("google"),
       roles: z
         .array(z.string())
         .default([
@@ -25,6 +25,7 @@ const configSchema = z.object({
         ]),
       locations: z.array(z.string()).default(["Remote", "LATAM", "United States", "Europe"]),
       boards: z.array(z.enum(JOB_BOARDS)).default([...JOB_BOARDS]),
+      grouped: z.boolean().default(false),
       maxQueries: z.number().int().positive().default(25),
       resultsPerQuery: z.number().int().positive().max(50).default(10),
       cacheTtlMs: z
@@ -34,6 +35,15 @@ const configSchema = z.object({
         .default(24 * 60 * 60 * 1000),
       concurrency: z.number().int().positive().max(20).default(5),
       minScore: z.number().min(0).max(100).default(0),
+    })
+    .default({}),
+  agent: z
+    .object({
+      /** `provider:model`, or a bare provider to use its default model. */
+      llm: z.string().default("anthropic"),
+      budgetUsd: z.number().positive().default(3),
+      maxModelCalls: z.number().int().positive().default(40),
+      maxToolCalls: z.number().int().positive().default(120),
     })
     .default({}),
   output: z
@@ -76,8 +86,14 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<AppConfig
   if (process.env.AUTOAPPLY_LINKEDIN)
     config.candidate.linkedinPath = process.env.AUTOAPPLY_LINKEDIN;
   if (process.env.AUTOAPPLY_LOG_LEVEL) config.logLevel = process.env.AUTOAPPLY_LOG_LEVEL;
+  if (process.env.AUTOAPPLY_LLM) config.agent.llm = process.env.AUTOAPPLY_LLM;
   const provider = process.env.AUTOAPPLY_SEARCH_PROVIDER;
-  if (provider === "google" || provider === "google-cse" || provider === "duckduckgo") {
+  if (
+    provider === "google" ||
+    provider === "google-cse" ||
+    provider === "duckduckgo" ||
+    provider === "browser"
+  ) {
     config.search.provider = provider;
   }
   return config;

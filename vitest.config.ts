@@ -17,6 +17,9 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
+      // Playwright glue needs a real Chrome; the provider around it is unit-
+      // tested through the BrowserEngine fake.
+      exclude: ["src/infrastructure/providers/browser-engine.ts"],
       thresholds: { lines: 80, functions: 80 },
     },
   },

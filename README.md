@@ -86,6 +86,19 @@ Select with `--provider <name>`, `search.provider` in `configs/default.json`, or
 | `google` (default) | nothing | Scrapes Google's HTML. **Google blocks most anonymous clients** (rate-limit / JavaScript wall), so expect errors. |
 | `google-cse` | API key + engine id | Official Google Custom Search JSON API. Reliable. Free tier: 100 queries/day. **Recommended.** |
 | `duckduckgo` | nothing | Keyless HTML endpoint; supports `site:` operators. DuckDuckGo bot-challenges some clients — works from some networks, not others. |
+| `browser` | Google Chrome installed | Renders Google results in a real browser (Playwright), so the JS-wall does not apply and no API key is needed. Slower; one request at a time with a politeness delay. |
+
+### Using `browser`
+
+```bash
+autoapply search --provider browser --resume ./resume.pdf
+```
+
+Runs headless by default with a persistent profile in `cache/browser-profile`.
+If Google shows a CAPTCHA or consent screen, run once with
+`AUTOAPPLY_BROWSER_HEADED=1`, solve it in the visible window, and later headless
+runs reuse the session. `AUTOAPPLY_BROWSER_EXECUTABLE` points at a custom
+Chromium binary if Chrome is not installed at the default location.
 
 ### Setting up `google-cse` (once, ~5 minutes)
 
@@ -101,6 +114,28 @@ GOOGLE_CSE_API_KEY=... GOOGLE_CSE_ID=... autoapply search --provider google-cse 
 
 Tip: the free tier is 100 queries/day and results are cached for 24h, so
 `--max-queries 25` (the default) leaves room for several runs per day.
+
+## Agent (in progress)
+
+`AGENT_PLAN.md` specifies a vendor-neutral LangChain.js agent that plans and
+refines Google Hacking queries. **M0 (foundations) is implemented**; the agent
+itself lands in M2 and nothing below changes the default search path yet.
+
+What works today:
+
+```bash
+autoapply doctor          # resolves the provider, credential and pricing
+AUTOAPPLY_LLM=deepseek autoapply doctor
+```
+
+| Provider | Default model | Deep tier | Caching | Credential |
+| --- | --- | --- | --- | --- |
+| `anthropic` | `claude-opus-5` | same model, `effort: high` | explicit | `ANTHROPIC_API_KEY` |
+| `deepseek` | `deepseek-v4-flash` | `deepseek-v4-pro` | automatic | `DEEPSEEK_API_KEY` |
+
+Rates live in `configs/pricing.json` with a `verifiedOn` date per model;
+`doctor` warns once an entry is over 90 days old. Budgets are computed from
+that table, so cost ceilings survive a provider swap.
 
 ## Scoring
 

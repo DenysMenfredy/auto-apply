@@ -1,0 +1,28 @@
+{
+  "_comment": "USD per million tokens, keyed by provider:model. Budget enforcement reads only from this file (AGENT_PLAN 5.1). Verify against each vendor's live pricing page and bump verifiedOn; doctor warns past 90 days.",
+  "models": {
+    "anthropic:claude-opus-5": {
+      "inputPerMTok": 5.0,
+      "outputPerMTok": 25.0,
+      "cachedInputPerMTok": 0.5,
+      "verifiedOn": "2026-06-24",
+      "source": "https://docs.claude.com/en/docs/about-claude/pricing"
+    },
+    "deepseek:deepseek-v4-flash": {
+      "inputPerMTok": 0.44,
+      "outputPerMTok": 1.32,
+      "cachedInputPerMTok": 0.014,
+      "verifiedOn": "2026-09-09",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing",
+      "note": "Peak rates. Off-peak is half; budgets use peak so a run never exceeds its ceiling."
+    },
+    "deepseek:deepseek-v4-pro": {
+      "inputPerMTok": 1.32,
+      "outputPerMTok": 3.96,
+      "cachedInputPerMTok": 0.044,
+      "verifiedOn": "2026-09-09",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing",
+      "note": "Peak rates. Off-peak is half; budgets use peak so a run never exceeds its ceiling."
+    }
+  }
+}

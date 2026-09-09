@@ -9,6 +9,12 @@ export interface QueryGeneratorOptions {
   boards: JobBoard[];
   /** Upper bound on generated queries to keep search volume predictable. */
   maxQueries: number;
+  /**
+   * One query per board combining all roles as an OR group and requiring every
+   * location, e.g. `site:jobs.lever.co ("Software Engineer" OR "AI Engineer")
+   * "LATAM" "Remote"` — instead of one query per role × location × board.
+   */
+  grouped?: boolean;
 }
 
 export const DEFAULT_QUERY_OPTIONS: QueryGeneratorOptions = {
@@ -41,6 +47,15 @@ export class SearchQueryGenerator {
         ? candidate.preferredLocations
         : this.options.locations;
 
+    if (this.options.grouped) {
+      return this.options.boards.slice(0, this.options.maxQueries).map((board) => ({
+        query: buildGroupedQueryString(board, roles, locations),
+        role: roles.join(" / "),
+        board,
+        ...(locations.length > 0 ? { location: locations.join(", ") } : {}),
+      }));
+    }
+
     const queries: SearchQuery[] = [];
     // Boards iterate innermost so every role reaches all boards before the
     // query budget runs out.
@@ -64,6 +79,13 @@ export class SearchQueryGenerator {
 function buildQueryString(board: JobBoard, role: string, location?: string): string {
   const parts = [`site:${boardSearchSite(board)}`, `"${role}"`];
   if (location) parts.push(`"${location}"`);
+  return parts.join(" ");
+}
+
+function buildGroupedQueryString(board: JobBoard, roles: string[], locations: string[]): string {
+  const parts = [`site:${boardSearchSite(board)}`];
+  if (roles.length > 0) parts.push(`(${roles.map((r) => `"${r}"`).join(" OR ")})`);
+  for (const location of locations) parts.push(`"${location}"`);
   return parts.join(" ");
 }
 

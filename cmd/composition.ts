@@ -16,6 +16,8 @@ import { BambooHrParser } from "../src/infrastructure/parser/bamboohr/bamboohr-p
 import { GreenhouseParser } from "../src/infrastructure/parser/greenhouse/greenhouse-parser.js";
 import { LeverParser } from "../src/infrastructure/parser/lever/lever-parser.js";
 import { WorkableParser } from "../src/infrastructure/parser/workable/workable-parser.js";
+import { PlaywrightBrowserEngine } from "../src/infrastructure/providers/browser-engine.js";
+import { BrowserSearchProvider } from "../src/infrastructure/providers/browser-search-provider.js";
 import { DuckDuckGoSearchProvider } from "../src/infrastructure/providers/duckduckgo-search-provider.js";
 import { GoogleCustomSearchProvider } from "../src/infrastructure/providers/google-custom-search-provider.js";
 import { GoogleSearchProvider } from "../src/infrastructure/providers/google-search-provider.js";
@@ -24,6 +26,7 @@ import { LinkedInSource } from "../src/infrastructure/sources/linkedin-source.js
 import { ResumePdfSource } from "../src/infrastructure/sources/resume-pdf-source.js";
 import type { Logger } from "../src/shared/interfaces/logger.js";
 import type { ProfileSource } from "../src/shared/interfaces/profile-source.js";
+import type { SearchProvider } from "../src/shared/interfaces/search-provider.js";
 
 /**
  * Composition root (§ Dependency Injection): the only place where concrete
@@ -34,6 +37,8 @@ export interface Container {
   buildCandidateProfile: BuildCandidateProfileUseCase;
   searchJobs: SearchJobsUseCase;
   exportResults: ExportResultsUseCase;
+  /** Releases held resources (e.g. the browser provider's Chrome). */
+  dispose(): Promise<void>;
 }
 
 export function isUrl(value: string): boolean {
@@ -65,16 +70,31 @@ export function buildContainer(config: AppConfig, options: { verbose?: boolean }
     locations: config.search.locations,
     boards: config.search.boards,
     maxQueries: config.search.maxQueries,
+    grouped: config.search.grouped,
   });
 
   const providerOptions = {
     resultsPerQuery: config.search.resultsPerQuery,
     cacheTtlMs: config.search.cacheTtlMs,
   };
-  const searchProvider = {
+  const searchProvider: SearchProvider = {
     google: () => new GoogleSearchProvider(http, cache, logger, providerOptions),
     "google-cse": () => new GoogleCustomSearchProvider(http, cache, logger, providerOptions),
     duckduckgo: () => new DuckDuckGoSearchProvider(http, cache, logger, providerOptions),
+    browser: () =>
+      new BrowserSearchProvider(cache, logger, {
+        ...providerOptions,
+        engine: new PlaywrightBrowserEngine({
+          profileDir: path.resolve(config.cacheDir, "browser-profile"),
+          // `||` not `??`: an empty AUTOAPPLY_BROWSER_HEADED= line means headless.
+          headless: !(process.env.AUTOAPPLY_BROWSER_HEADED || ""),
+          // Headed runs leave time for a human to solve a CAPTCHA mid-run.
+          ...(process.env.AUTOAPPLY_BROWSER_HEADED ? { resultsWaitMs: 120_000 } : {}),
+          ...(process.env.AUTOAPPLY_BROWSER_EXECUTABLE
+            ? { executablePath: process.env.AUTOAPPLY_BROWSER_EXECUTABLE }
+            : {}),
+        }),
+      }),
   }[config.search.provider]();
 
   const parsers = [
@@ -101,5 +121,8 @@ export function buildContainer(config: AppConfig, options: { verbose?: boolean }
       [new JsonExporter(outputDir), new CsvExporter(outputDir), new MarkdownExporter(outputDir)],
       logger,
     ),
+    dispose: async () => {
+      await searchProvider.close?.();
+    },
   };
 }
