@@ -1,0 +1,66 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly re-scan so newly published queries reach existing code.
+    # Off-the-hour minute, per GitHub's guidance on scheduled-run load.
+    - cron: "27 4 * * 1"
+  workflow_dispatch:
+
+# A newer push to the same ref supersedes an in-flight scan, but never cancel
+# a scan of main: its results are what the Security tab reports against.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions: {}
+
+jobs:
+  analyze:
+    name: Analyze TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      # Upload results to the Security tab.
+      security-events: write
+      # Read the workflow run and the source.
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # TypeScript is analyzed from source; no compilation step is needed,
+          # so the project is never built or its dependencies executed.
+          build-mode: none
+          # "default" is the quieter suite if extended proves noisy here.
+          queries: security-extended
+          config: |
+            paths-ignore:
+              # Build output and generated reports.
+              - dist
+              - coverage
+              # Runtime scratch: HTTP cache and exported results.
+              - cache
+              - outputs
+              # Recorded third-party pages used as parser fixtures. This is
+              # captured vendor markup, not our code, and scanning it reports
+              # findings against job boards rather than this project.
+              - tests/fixtures
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
